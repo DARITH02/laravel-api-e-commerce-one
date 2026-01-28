@@ -28,7 +28,17 @@ return [
     |
     */
 
+
+
     'disks' => [
+        'cloudinary' => [
+            'driver'    => 'cloudinary',
+            'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+            'api_key'   => env('CLOUDINARY_API_KEY'),
+            'api_secret' => env('CLOUDINARY_API_SECRET'),
+            'url'       => env('CLOUDINARY_URL'),
+            'secure'    => true,
+        ],
 
         'local' => [
             'driver' => 'local',
@@ -41,7 +51,7 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/') . '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

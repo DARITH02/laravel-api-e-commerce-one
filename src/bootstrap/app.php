@@ -13,10 +13,15 @@ return Application::configure(basePath: dirname(__DIR__))
 
         health: '/up',
     )
+    ->withProviders([
+        // Add Cloudinary service provider here
+        CloudinaryLabs\CloudinaryLaravel\CloudinaryServiceProvider::class,
+    ])
+
     ->withMiddleware(function (Middleware $middleware): void {
 
         $middleware->group('api', [
-        \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ]);
 
         // $middleware->alias([
