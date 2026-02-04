@@ -1,61 +1,68 @@
 <?php
 
+use App\Http\Controllers\Api\Auth\GoogleController;
+use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\UserController;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
-use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
-Route::get('/check-cloudinary-fixed', function() {
-    try {
-        // Get config values
-        $config = config('cloudinary');
-        
-        // Check if we can parse the URL
-        $cloudUrl = $config['cloud_url'] ?? null;
-        $parsed = parse_url($cloudUrl);
-        
-        // Try to create Cloudinary instance
-        $cloudinary = app('cloudinary');
-        
-        return response()->json([
-            'success' => true,
-            'config' => [
-                'cloud_url' => $cloudUrl,
-                'parsed_url' => $parsed,
-                'has_scheme' => isset($parsed['scheme']) && $parsed['scheme'] === 'cloudinary',
-                'has_user' => isset($parsed['user']),
-                'has_pass' => isset($parsed['pass']),
-                'has_host' => isset($parsed['host']),
-            ],
-            'env_vars' => [
-                'CLOUDINARY_CLOUD_NAME' => env('CLOUDINARY_CLOUD_NAME'),
-                'CLOUDINARY_API_KEY' => env('CLOUDINARY_API_KEY'),
-                'CLOUDINARY_API_SECRET' => env('CLOUDINARY_API_SECRET'),
-                'CLOUDINARY_URL' => env('CLOUDINARY_URL'),
-            ]
-        ]);
-        
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'error' => $e->getMessage(),
-            'config_file_content' => file_get_contents(config_path('cloudinary.php')),
-            'suggestion' => 'Make sure the config file is using the correct env variable names'
-        ], 500);
-    }
-});
-// Public routes
-Route::post('/register', [AuthController::class, 'register']);
+// Public
+// Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::get("/products", function () {
-    return response()->json([
-        "message" => "products"
-    ]);
+// Route::prefix('auth')->group(function () {
+// });
+Route::post('auth/register', RegisterController::class);
+
+
+// // google
+// Route::get("/auth/google", [GoogleController::class, "redirect"]);
+// Route::get("/auth/google/callback", [GoogleController::class, "callback"]);
+
+// Route::get("/auth/google/register", [GoogleController::class, "registerRedirect"]);
+// Route::get("/auth/google/register/callback", [GoogleController::class, "registerCallback"]);
+
+// Route::get('/test', fn() => response()->json(['ok' => true]));
+
+
+
+Route::middleware(['auth:sanctum'])->group(function () {
+
+    Route::get('/me', [UserController::class, 'me']);
 });
 
+
+// Route::get('/email/verify/{id}/{token}', function ($id, $token) {
+//     $user = User::findOrFail($id);
+
+//     if ($user->email_verified_at) {
+//         return response()->json([
+//             'message' => 'Email already verified'
+//         ], 200);
+//     }
+
+//     if (
+//         !$user->email_verification_token ||
+//         !hash_equals(
+//             $user->email_verification_token,
+//             hash('sha256', $token)
+//         )
+//     ) {
+//         return response()->json([
+//             'message' => 'Invalid or expired verification link'
+//         ], 400);
+//     }
+
+//     $user->update([
+//         'email_verified_at' => now(),
+//         'email_verification_token' => null,
+//     ]);
+
+//     return redirect('http://localhost:5173/email-verified');
+// })->name('verification.verify');
+
+
+// Protected
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/private', function () {
-        return response()->json([
-            'message' => 'private'
-        ]);
-    });
+    Route::get('/private', fn() => response()->json(['message' => 'private']));
 });
