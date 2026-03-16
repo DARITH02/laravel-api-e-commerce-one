@@ -12,11 +12,11 @@ class RegisterController extends Controller
 {
     public function __invoke(RegisterRequest $request,AuthService $authService)
     {
-        $result = $authService->register($request->validated());
+        // $result = $authService->register($request->validated());
 
         return response()->json([
             'message' => 'User registered successfully',
-            'user' => new UserResource($result['user']),
+            // 'user' => new UserResource($result['user']),
             // 'token' => $result['token'],
         ], 201);
     }

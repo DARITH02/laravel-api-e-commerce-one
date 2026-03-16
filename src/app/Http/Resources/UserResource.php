@@ -12,9 +12,9 @@ class UserResource extends JsonResource
             'id'    => $this->id,
             'name'  => $this->name,
             'email' => $this->email,
-            'image' => $this->image
-                ? asset('storage/' . $this->image)
-                : null,
+            // 'image' => $this->image
+            //     ? asset('storage/' . $this->image)
+            //     : null,
         ];
     }
 }

@@ -15,6 +15,11 @@ class EnsureJson
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if(!$request->expectsJson()){
+            return response()->json([
+                'message'=>'Content type must be application/json'
+            ],400);
+        }
         return $next($request);
     }
 }

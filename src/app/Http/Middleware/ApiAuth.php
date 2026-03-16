@@ -25,3 +25,4 @@ class ApiAuth
         return $next($request);
     }
 }
+

@@ -3,44 +3,76 @@
 namespace App\Services;
 
 use App\Models\User;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
+use Throwable;
 
 class AuthService
 {
-    public function register(array $data): array
+    public function googleAuth($googleUser, string $type): array
     {
-        return DB::transaction(function () use ($data) {
+        try {
+            DB::beginTransaction();
 
-            $image = ImageService::upload($data['image'] ?? null);
+            $user = User::where('email', $googleUser->getEmail())->first();
 
-            $user = User::create([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'password' => Hash::make($data['password']),
-                // 'image' => $image,
-            ]);
+            /** LOGIN */
+            if ($type === 'login') {
+                if (!$user) {
+                    return [
+                        'status' => 'not_registered',
+                        'message' => 'Please register first',
+                    ];
+                }
+                return [
+                    'status' => 'login_success',
+                    'user' => $user,
+                    'token' => $user->createToken('api-token', ['*'], now()->addHours(24))->plainTextToken,
+                    'message' => 'Login successful',
+                ];
+            }
+
+            /** REGISTER */
+            if ($type === 'register') {
+                if ($user) {
+                    return [
+                        'status' => 'already_registered',
+                        'message' => 'You are already registered. Please login.',
+                    ];
+                }
+
+                $user = User::create([
+                    'name' => $googleUser->getName(),
+                    'email' => $googleUser->getEmail(),
+                    'google_id' => $googleUser->getId(),
+                    'provider' => 'google',
+                    'images' => $googleUser->getAvatar(),
+                    'password' => bcrypt(Str::random(40)),
+                    'email_verified_at' => now(),
+                ]);
+
+                DB::commit();
+
+                return [
+                    'status' => 'register_success',
+                    'user' => $user,
+                    'token' => $user->createToken('api-token', ['*'], now()->addHours(24))->plainTextToken,
+                    'message' => 'Registration successful',
+                ];
+            }
 
             return [
-                'user' => $user,
-                'token' => $user->createToken('api')->plainTextToken,
+                'status' => 'error',
+                'message' => 'Invalid request type',
             ];
-        });
-    }
+        } catch (Throwable $e) {
+            DB::rollBack();
 
-    public function login(array $data): array
-    {
-        if (!Auth::attempt($data)) {
-            abort(401, 'Invalid credentials');
+            return [
+                'status' => 'error',
+                'message' => 'Google authentication failed',
+                'debug' => config('app.debug') ? $e->getMessage() : null,
+            ];
         }
-
-        $user = Auth::user();
-
-        return [
-            'message' => 'Login successful',
-            'user' => $user,
-            'token' => $user->createToken('api')->plainTextToken,
-        ];
     }
 }

@@ -1,68 +1,37 @@
 <?php
 
-use App\Http\Controllers\Api\Auth\GoogleController;
-use App\Http\Controllers\Api\Auth\RegisterController;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\UserController;
-use App\Models\User;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Auth\RegisterController;
+use App\Http\Controllers\Api\Auth\GoogleController;
+use App\Http\Controllers\Api\V1\Category\CategoryController;
+use App\Http\Controllers\UserController;
 
-// Public
-// Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-// Route::prefix('auth')->group(function () {
-// });
-Route::post('auth/register', RegisterController::class);
+/*
+|--------------------------------------------------------------------------
+| Public Auth Routes
+|--------------------------------------------------------------------------
+*/
+// Route::post('auth/login', [AuthController::class, 'login']);
+// Route::post('auth/register', RegisterController::class);
 
-
-// // google
-// Route::get("/auth/google", [GoogleController::class, "redirect"]);
-// Route::get("/auth/google/callback", [GoogleController::class, "callback"]);
-
-// Route::get("/auth/google/register", [GoogleController::class, "registerRedirect"]);
-// Route::get("/auth/google/register/callback", [GoogleController::class, "registerCallback"]);
-
-// Route::get('/test', fn() => response()->json(['ok' => true]));
-
-
-
-Route::middleware(['auth:sanctum'])->group(function () {
-
-    Route::get('/me', [UserController::class, 'me']);
+/*
+|--------------------------------------------------------------------------
+| Google OAuth Routes
+|--------------------------------------------------------------------------
+*/ Route::prefix('auth/google')->group(function () {
+    Route::get('redirect', [GoogleController::class, 'redirect']); // or 'redirect' if you named it that
+    Route::get('callback', [GoogleController::class, 'callback']);
 });
 
-
-// Route::get('/email/verify/{id}/{token}', function ($id, $token) {
-//     $user = User::findOrFail($id);
-
-//     if ($user->email_verified_at) {
-//         return response()->json([
-//             'message' => 'Email already verified'
-//         ], 200);
-//     }
-
-//     if (
-//         !$user->email_verification_token ||
-//         !hash_equals(
-//             $user->email_verification_token,
-//             hash('sha256', $token)
-//         )
-//     ) {
-//         return response()->json([
-//             'message' => 'Invalid or expired verification link'
-//         ], 400);
-//     }
-
-//     $user->update([
-//         'email_verified_at' => now(),
-//         'email_verification_token' => null,
-//     ]);
-
-//     return redirect('http://localhost:5173/email-verified');
-// })->name('verification.verify');
-
-
-// Protected
+/*
+|--------------------------------------------------------------------------
+| Protected Routes (Sanctum)
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/private', fn() => response()->json(['message' => 'private']));
+    Route::get('me', [UserController::class, 'me']);
+    Route::get('private', fn () => response()->json(['message' => 'private']));
 });
+
+Route::get('/category',[CategoryController::class,'index']);
